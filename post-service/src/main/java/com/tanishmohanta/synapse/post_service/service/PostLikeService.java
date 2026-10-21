@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -20,6 +21,7 @@ public class PostLikeService {
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
 
+    @Transactional
     public void likePost(Long postId) {
         Long userId = 1L; // Placeholder for the authenticated user's ID
         log.info("User with ID {} liked post with ID {}.", userId, postId);
@@ -37,5 +39,19 @@ public class PostLikeService {
 
 
         //TODO : SEND NOTIFICATION TO THE POST OWNER
+    }
+
+    @Transactional
+    public void unlikePost(Long postId) {
+        Long userId = 1L; // Placeholder for the authenticated user's ID
+        log.info("User with ID {} unliked post with ID {}.", userId, postId);
+        PostEntity postEntity = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
+        boolean hasAlreadyLiked = postLikeRepository.existsByPostIdAndUserId(postId, userId);
+        if (!hasAlreadyLiked) {
+            throw new BadRequestException("User has not liked this post yet.");
+        }
+
+        postLikeRepository.deleteByUserIdAndPostId(userId, postId);
     }
 }
