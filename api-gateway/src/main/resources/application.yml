@@ -1,0 +1,50 @@
+
+server:
+  port: 9000
+
+spring:
+  application:
+    name: api-gateway
+
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/api/v1/user/**
+              filters:
+                - StripPrefix=2
+
+            - id: post-service
+              uri: lb://post-service
+              predicates:
+                - Path=/api/v1/post/**
+              filters:
+                - StripPrefix=2
+                - name: AuthenticationFilter
+
+            - id: connection-service
+              uri: lb://connection-service
+              predicates:
+                - Path=/api/v1/connection/**
+              filters:
+                - StripPrefix=2
+                - name: AuthenticationFilter
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+logging:
+  level:
+    org.springframework.cloud.gateway: TRACE
+    org.springframework.cloud.loadbalancer: DEBUG
+
+
+jwt:
+  secret:
+    key: uTIVUByfvwu@$&*^23yfuvh@8K23t6wfbFAKKKKEEEE

@@ -29,7 +29,7 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<PostDTO> getPostById(@PathVariable Long postId) {
         PostDTO postDTO=postService.getPostById(postId);
-        return ResponseEntity.ok(postDTO); // Replace with actual retrieved post
+        return ResponseEntity.ok(postDTO);
     }
 
     @GetMapping("/user/{userId}/allPosts")
