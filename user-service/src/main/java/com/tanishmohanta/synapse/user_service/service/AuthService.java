@@ -3,12 +3,14 @@ package com.tanishmohanta.synapse.user_service.service;
 import com.tanishmohanta.synapse.user_service.dto.SignupRequestDTO;
 import com.tanishmohanta.synapse.user_service.dto.UserDTO;
 import com.tanishmohanta.synapse.user_service.entity.UserEntity;
+import com.tanishmohanta.synapse.user_service.event.UserCreatedEvent;
 import com.tanishmohanta.synapse.user_service.exception.BadRequestException;
 import com.tanishmohanta.synapse.user_service.repository.UserRepository;
 import com.tanishmohanta.synapse.user_service.utils.Bcrypt;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -19,6 +21,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final JwtService jwtService;
+    private final KafkaTemplate<Long, UserCreatedEvent> userCreatedEventKafkaTemplate;
 
     public UserDTO signUp(SignupRequestDTO signupRequestDTO) {
         log.info("Signing up user with email: {}", signupRequestDTO.getEmail());
@@ -30,6 +33,14 @@ public class AuthService {
         UserEntity userEntity = modelMapper.map(signupRequestDTO, UserEntity.class);
         userEntity.setPassword(Bcrypt.hashPassword(signupRequestDTO.getPassword()));
         UserEntity savedUser = userRepository.save(userEntity);
+
+        UserCreatedEvent userCreatedEvent = UserCreatedEvent.builder()
+                .userId(savedUser.getId())
+                .name(savedUser.getName())
+                .build();
+
+        userCreatedEventKafkaTemplate.send("user-created-topic",userCreatedEvent);
+
         return modelMapper.map(savedUser, UserDTO.class);
     }
 
