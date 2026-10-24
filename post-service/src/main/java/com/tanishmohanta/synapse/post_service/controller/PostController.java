@@ -1,5 +1,6 @@
 package com.tanishmohanta.synapse.post_service.controller;
 
+import com.tanishmohanta.synapse.post_service.auth.AuthContextHolder;
 import com.tanishmohanta.synapse.post_service.dto.PostCreateRequestDTO;
 import com.tanishmohanta.synapse.post_service.dto.PostDTO;
 import com.tanishmohanta.synapse.post_service.service.PostService;

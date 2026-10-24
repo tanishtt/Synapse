@@ -35,14 +35,12 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory {
                 ServerWebExchange mutatedExchange = exchange.mutate()
                         .request(r -> r.header("X-User-Id", userId))
                         .build();
-
+                return chain.filter(mutatedExchange);
             } catch (JwtException e) {
                 log.error("JWT Token is invalid : {}", e.getLocalizedMessage());
                 exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                 return exchange.getResponse().setComplete();
             }
-
-            return chain.filter(exchange);
         };
     }
 
