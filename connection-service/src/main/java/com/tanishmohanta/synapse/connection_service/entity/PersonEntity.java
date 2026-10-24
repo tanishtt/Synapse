@@ -15,4 +15,24 @@ public class PersonEntity {
     private Long userId;
     private String name;
 
+    public Long getId() {
+        return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "PersonEntity{" +
+                "id=" + id +
+                ", userId=" + userId +
+                ", name='" + name + '\'' +
+                '}';
+    }
 }

@@ -17,6 +17,9 @@ public class ConnectionService {
 
     public List<PersonEntity> getFirstDegreeConnections(Long userId) {
         log.info("Getting first degree connections for user with ID: {}", userId);
-        return personRepository.getFirstDegreeConnection(userId);
+        List<PersonEntity> firstDegreeConnection = personRepository.getFirstDegreeConnection(userId);
+//        for (PersonEntity personEntity: firstDegreeConnection)
+//        {log.info("personEntity : "+personEntity.toString());}
+        return firstDegreeConnection;
     }
 }

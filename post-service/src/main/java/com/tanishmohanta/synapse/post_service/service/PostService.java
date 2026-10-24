@@ -6,11 +6,13 @@ import com.tanishmohanta.synapse.post_service.dto.PersonDTO;
 import com.tanishmohanta.synapse.post_service.dto.PostCreateRequestDTO;
 import com.tanishmohanta.synapse.post_service.dto.PostDTO;
 import com.tanishmohanta.synapse.post_service.entity.PostEntity;
+import com.tanishmohanta.synapse.post_service.event.PostCreated;
 import com.tanishmohanta.synapse.post_service.exception.ResourceNotFoundException;
 import com.tanishmohanta.synapse.post_service.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,12 +24,29 @@ public class PostService {
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
     private final ConnectionServiceClient connectionServiceClient;
+    private final KafkaTemplate<String, PostCreated> postCreatedKafkaTemplate;
 
     public PostDTO createPost(PostCreateRequestDTO postCreateRequestDTO, Long userId) {
         log.info("Creating post for user with ID: {}", userId);
         PostEntity postEntity=modelMapper.map(postCreateRequestDTO, PostEntity.class);
         postEntity.setUserId(userId);
         PostEntity savedPost=postRepository.save(postEntity);
+
+        List<PersonDTO> personDTOList = connectionServiceClient.getFirstDegreeConnections(userId);
+        log.info("personDTOList : "+personDTOList.toString());
+
+        for (PersonDTO personDTO: personDTOList){
+            PostCreated postCreated=PostCreated.builder()
+                    .postId(postEntity.getId())
+                    .userId(personDTO.getUserId())
+                    .content(postEntity.getContent())
+                    .ownerUserId(userId)
+                    .build();
+            postCreatedKafkaTemplate.send("post-created-topic", postCreated);
+            log.info("Notification dispatched successfully....");
+        }
+        log.info("Post created successfully for user with ID: {}", userId);
+
         return modelMapper.map(savedPost, PostDTO.class);
     }
 
@@ -41,10 +60,8 @@ public class PostService {
 
     public PostDTO getPostById(Long postId) {
         log.info("Getting post by ID: {}", postId);
-        Long userId= AuthContextHolder.getCurrentUserId ();
+        //Long userId= AuthContextHolder.getCurrentUserId ();
 
-        List<PersonDTO> personDTOList = connectionServiceClient.getFirstDegreeConnections(userId);
-        log.info(personDTOList.toString());
         PostEntity postEntity=postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
         return modelMapper.map(postEntity, PostDTO.class);
