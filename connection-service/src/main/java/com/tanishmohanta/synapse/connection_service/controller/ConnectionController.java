@@ -23,4 +23,25 @@ public class ConnectionController {
         List<PersonEntity> firstDegreeConnections = connectionService.getFirstDegreeConnections(userId);
         return ResponseEntity.ok(firstDegreeConnections);
     }
+
+    @PostMapping("/request/{userId}")
+    public ResponseEntity<Void> sendConnectionRequest(@PathVariable Long userId) {
+        log.info("sendConnectionRequest({})", userId);
+        connectionService.sendConnectionRequest(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/accept/{userId}")
+    public ResponseEntity<Void> acceptConnectionRequest(@PathVariable Long userId) {
+        log.info("acceptConnectionRequest({})", userId);
+        connectionService.acceptConnectionRequest(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reject/{userId}")
+    public ResponseEntity<Void> rejectConnectionRequest(@PathVariable Long userId) {
+        log.info("rejectConnectionRequest({})", userId);
+        connectionService.rejectConnectionRequest(userId);
+        return ResponseEntity.noContent().build();
+    }
 }
