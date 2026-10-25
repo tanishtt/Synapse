@@ -8,8 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -20,11 +22,11 @@ public class PostController {
 
     private final PostService postService;
 
-    @PostMapping
-    public ResponseEntity<PostDTO> createPost(@RequestBody PostCreateRequestDTO postCreateRequestDTO,
-                                              HttpServletRequest request) {
-        Long userId=AuthContextHolder.getCurrentUserId();
-        PostDTO createdPost = postService.createPost(postCreateRequestDTO, userId);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PostDTO> createPost(@RequestPart("post") PostCreateRequestDTO postCreateRequestDTO,
+                                              @RequestPart("file") MultipartFile file) {
+
+        PostDTO createdPost = postService.createPost(postCreateRequestDTO,file);
         return new ResponseEntity<>(createdPost, HttpStatus.CREATED);
     }
 
